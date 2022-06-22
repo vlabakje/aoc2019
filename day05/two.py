@@ -20,7 +20,7 @@ def intcode_get(intcode, address, mode):
 
 def intcode_set(intcode, address, mode, value):
     if mode != 0:
-        raise NotImplementedError(f"invalid mode {address=} {mode=} (0, 1 supported)")
+        raise NotImplementedError(f"invalid mode {address=} {mode=}")
     intcode[intcode[address]] = value
 
 def op_three(intcode, ip, params, f) -> int:
@@ -44,20 +44,6 @@ def op_jump_if(intcode, ip, params, value):
         return intcode_get(intcode, ip + 2, params[1])
     return ip + 3
 
-def op_jump_lt(intcode, ip, params, value):
-    if intcode_get(intcode, ip + 1, params[0]) < intcode_get(intcode, ip + 2, params[1]):
-        intcode_set(intcode, ip + 3, params[2], 1)
-    else:
-        intcode_set(intcode, ip + 3, params[2], 0)
-    return ip + 4
-
-def op_jump_eq(intcode, ip, params, value):
-    if intcode_get(intcode, ip + 1, params[0]) == intcode_get(intcode, ip + 2, params[1]):
-        intcode_set(intcode, ip + 3, params[2], 1)
-    else:
-        intcode_set(intcode, ip + 3, params[2], 0)
-    return ip + 4
-
 def run(intcode: List[int]):
     ip = 0
     while intcode[ip] != 99:  # halt
@@ -75,10 +61,10 @@ def run(intcode: List[int]):
             ip = op_jump_if(intcode, ip, params, True)
         elif opcode == 6:  # jump if false
             ip = op_jump_if(intcode, ip, params, False)
-        elif opcode == 7:  # jump if true
-            ip = op_jump_lt(intcode, ip, params, True)
-        elif opcode == 8:  # jump if false
-            ip = op_jump_eq(intcode, ip, params, False)
+        elif opcode == 7:  # less then
+            ip += op_three(intcode, ip, params, lambda x, y: 1 if x < y else 0)
+        elif opcode == 8:  # equals
+            ip += op_three(intcode, ip, params, lambda x, y: 1 if x == y else 0)
         else:
             raise NotImplementedError(f"unknown opcode {ip=} {intcode[ip]=} {opcode=} {params=}")
         print(",".join(str(i) for i in intcode), f"{ip=}")
