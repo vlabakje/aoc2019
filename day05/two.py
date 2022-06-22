@@ -27,16 +27,15 @@ def op_three(intcode, ip, params, f) -> int:
     intcode_set(intcode, ip + 3, params[2], f(
             intcode_get(intcode, ip + 1, params[0]),
             intcode_get(intcode, ip + 2, params[1])))
-    return 4
+    return ip + 4
 
 def op_input(intcode, ip):
-    value = int(input("-> "))
-    intcode_set(intcode, ip + 1, 0, value)
-    return 2
+    intcode_set(intcode, ip + 1, 0, int(input("-> ")))
+    return ip + 2
 
 def op_output(intcode, ip):
     print("out " + str(intcode_get(intcode, ip + 1, 0)))
-    return 2
+    return ip + 2
 
 def op_jump_if(intcode, ip, params, value):
     p1 = intcode_get(intcode, ip + 1, params[0])
@@ -48,27 +47,27 @@ def run(intcode: List[int]):
     ip = 0
     while intcode[ip] != 99:  # halt
         opcode, params = parse_operation(intcode[ip])
-        print(",".join(str(i) for i in intcode), f"{ip=}")
+        print(f"{ip=} {opcode=}", ",".join(str(i) for i in intcode)[:70])
         if opcode == 1:  # addition
-            ip += op_three(intcode, ip, params, lambda x, y: x + y)
+            ip = op_three(intcode, ip, params, lambda x, y: x + y)
         elif opcode == 2:  # multiplication
-            ip += op_three(intcode, ip, params, lambda x, y: x * y)
+            ip = op_three(intcode, ip, params, lambda x, y: x * y)
         elif opcode == 3:  # input
-            ip += op_input(intcode, ip)
+            ip = op_input(intcode, ip)
         elif opcode == 4:  # output
-            ip += op_output(intcode, ip)
+            ip = op_output(intcode, ip)
         elif opcode == 5:  # jump if true
             ip = op_jump_if(intcode, ip, params, True)
         elif opcode == 6:  # jump if false
             ip = op_jump_if(intcode, ip, params, False)
         elif opcode == 7:  # less then
-            ip += op_three(intcode, ip, params, lambda x, y: 1 if x < y else 0)
+            ip = op_three(intcode, ip, params, lambda x, y: 1 if x < y else 0)
         elif opcode == 8:  # equals
-            ip += op_three(intcode, ip, params, lambda x, y: 1 if x == y else 0)
+            ip = op_three(intcode, ip, params, lambda x, y: 1 if x == y else 0)
         else:
             raise NotImplementedError(f"unknown opcode {ip=} {intcode[ip]=} {opcode=} {params=}")
-        print(",".join(str(i) for i in intcode), f"{ip=}")
-        print("---")
+        # print(f"{ip=}", ",".join(str(i) for i in intcode)[:50])
+        #print("---")
     return intcode[0]
 
 if __name__ == "__main__":
