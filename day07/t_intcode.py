@@ -26,21 +26,21 @@ class IntCode:
                 self.get(self.ip + 2, params[1])))
         self.ip += 4
 
-    async def op_input(self):
+    def op_input(self):
         if isinstance(self.input, list):
             self.set(self.ip + 1, 0, self.input.pop(0))
         elif callable(self.input):
-            self.set(self.ip + 1, 0, await self.input())
+            self.set(self.ip + 1, 0, self.input())
         else:
             raise RuntimeError(f"unable to handle input type {type(self.input)=}")
         self.debug(f"input: {self.get(self.ip + 1, 0)}")
         self.ip += + 2
 
-    async def op_output(self):
+    def op_output(self):
         if isinstance(self.output, list):
             self.output.append(self.get(self.ip + 1, 0))
         elif callable(self.output):
-            await self.output(self.get(self.ip + 1, 0))
+            self.output(self.get(self.ip + 1, 0))
         else:
             raise RuntimeError(f"unable to handle output type {type(self.output)=}")
         self.ip += 2
@@ -52,18 +52,18 @@ class IntCode:
         else:
             self.ip += 3
 
-    async def run(self):
+    def run(self):
         while self.code[self.ip] != 99:  # halt
             opcode, params = parse_operation(self.code[self.ip])
-            self.debug(f"{opcode=} " + ",".join(str(i) for i in self.code)[:70])
+            self.debug(",".join(str(i) for i in self.code)[:70])
             if opcode == 1:  # addition
                 self.op_three(params, lambda x, y: x + y)
             elif opcode == 2:  # multiplication
                 self.op_three(params, lambda x, y: x * y)
             elif opcode == 3:  # input
-                await self.op_input()
+                self.op_input()
             elif opcode == 4:  # output
-                await self.op_output()
+                self.op_output()
             elif opcode == 5:  # jump if true
                 self.op_jump_if(params, True)
             elif opcode == 6:  # jump if false
